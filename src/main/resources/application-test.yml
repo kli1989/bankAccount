@@ -19,7 +19,9 @@ spring:
       enabled: false
 
   cache:
-    type: simple
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=86400s  # 1 day in seconds
 
 logging:
   level:

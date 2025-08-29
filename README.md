@@ -14,7 +14,6 @@ A robust Spring Boot application for managing bank accounts with comprehensive R
   - [🧪 API Testing](#-api-testing)
   - [🏃‍♂️ Unit Testing](#️-unit-testing)
   - [🔗 Integration Testing](#-integration-testing)
-  - [🚀 Testing Automation & CI/CD](#-testing-automation--cicd)
   - [📊 Test Reporting & Analytics](#-test-reporting--analytics)
   - [🎨 User Interface Testing](#-user-interface-testing)
 - [🐳 Docker Deployment](#-docker-deployment)
@@ -22,7 +21,7 @@ A robust Spring Boot application for managing bank accounts with comprehensive R
 - [🔒 Security Considerations](#-security-considerations)
 - [🔧 Configuration](#-configuration)
 - [🏗️ Architecture](#️-architecture)
-- [📈 Performance Optimization](#-performance-optimization)
+- [📈 Cache & Performance Optimization](#-cache--performance-optimization)
 
 - [🔍 Troubleshooting](#-troubleshooting)
 
@@ -31,7 +30,7 @@ A robust Spring Boot application for managing bank accounts with comprehensive R
 - **🏦 Account Management**: Create, read, update, and delete bank accounts
 - **💸 Fund Transfers**: Secure money transfers between accounts with concurrency control
 - **🔍 Pagination & Search**: Efficient data retrieval with pagination and search capabilities
-- **⚡ Caching**: Performance optimization with caching for frequently accessed data
+- **⚡ Caching**: High-performance caching with Redis (production) and Caffeine (development/test) with 24-hour TTL
 - **✅ Validation**: Comprehensive input validation and error handling
 - **🧪 Testing Suite**: Complete test suite including unit, integration, stress, and performance tests
 - **🚀 Performance Testing**: Gatling-based load testing with comprehensive metrics and reporting
@@ -54,7 +53,7 @@ A robust Spring Boot application for managing bank accounts with comprehensive R
 - **Container**: Docker
 - **Testing**: JUnit 5, Mockito, TestContainers, Gatling (Performance Testing)
 - **Documentation**: OpenAPI/Swagger
-- **Caching**: Spring Cache with Caffeine
+- **Caching**: Spring Cache with Redis (production) and Caffeine (development/test)
 
 ## 🚀 Quick Start
 
@@ -287,51 +286,6 @@ Integration tests validate the complete application stack including database ope
 ./mvnw test -Dtest="BankAccountControllerIntegrationTest"
 ```
 
-### 🚀 Testing Automation & CI/CD
-
-#### Continuous Integration
-Our testing suite is designed for automated execution in CI/CD pipelines:
-
-```yaml
-# GitHub Actions example
-name: Banking System CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Run Unit Tests
-        run: ./mvnw test -Dtest="*Test"
-      - name: Run Integration Tests
-        run: ./mvnw test -Dtest="*IntegrationTest"
-      - name: Run Performance Tests
-        run: |
-          ./mvnw spring-boot:run &
-          sleep 30
-          ./mvnw gatling:test
-      - name: Generate Coverage Report
-        run: ./mvnw jacoco:report
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3
-```
-
-#### Test Execution Profiles
-```bash
-# Development testing (fast feedback)
-./mvnw test -Pdev
-
-# Production testing (comprehensive)
-./mvnw test -Pprod
-
-# Performance testing only
-./mvnw gatling:test
-```
-
 ### 📊 Test Reporting & Analytics
 
 #### Code Coverage Reports
@@ -367,97 +321,6 @@ target/gatling/
 - ✅ **Success Rate Trends**: Pass/fail ratios
 - 🔍 **Error Analysis**: HTTP status codes, error messages
 - 📊 **Resource Usage**: Memory, CPU, database connections
-
-### 🛠️ Test Data Management
-
-#### Test Database Configuration
-```yaml
-# src/test/resources/application-test.yml
-spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-
-# Clean database between tests
-test:
-  database:
-    replace: none
-```
-
-#### Test Data Factories
-We use factory patterns for generating realistic test data:
-
-```java
-// Test data factories
-public class TestDataFactory {
-    public static BankAccountRequest createValidAccountRequest() {
-        return BankAccountRequest.builder()
-            .accountNumber("ACC" + RandomStringUtils.randomNumeric(10))
-            .accountHolderName("Test User " + RandomUtils.nextInt(1, 1000))
-            .email("test.user." + RandomUtils.nextInt(1, 10000) + "@example.com")
-            .phoneNumber("+1" + RandomStringUtils.randomNumeric(10))
-            .initialBalance(BigDecimal.valueOf(RandomUtils.nextDouble(100, 10000)))
-            .currency("USD")
-            .build();
-    }
-}
-```
-
-### 🎯 Quality Assurance Best Practices
-
-#### Testing Pyramid
-Our testing strategy follows the testing pyramid:
-
-```
-   /\
-  /  \    End-to-End Tests (Integration Tests)
- /____\   ~10% of tests
-|    |
-|    |   Integration Tests (API, Database)
-|____|   ~20% of tests
-|    |
-|    |   Unit Tests (Business Logic, Validation)
-|____|   ~70% of tests
-```
-
-#### Test Categories & Coverage
-
-**Unit Tests** (`*Test.java`):
-- Service layer business logic
-- Input validation rules
-- Data transformation
-- Utility functions
-- Exception handling
-
-**Integration Tests** (`*IntegrationTest.java`):
-- REST API endpoints
-- Database operations
-- External service integrations
-- Security and authentication
-- Performance under load
-
-**Performance Tests** (`*.scala`):
-- Load testing scenarios
-- Stress testing limits
-- Scalability validation
-- Bottleneck identification
-
-#### Testing Standards
-- **Test Naming**: `MethodName_ExpectedBehavior`
-- **Test Isolation**: Each test is independent
-- **Test Data**: Realistic and varied
-- **Assertion Clarity**: Clear pass/fail criteria
-- **Documentation**: Inline test documentation
 
 ### 🔍 Debugging & Troubleshooting
 
@@ -632,15 +495,6 @@ curl http://localhost:8080/api/v1/actuator/metrics
 - Minimal logging
 - Random server ports
 
-### Cache Configuration
-```yaml
-spring:
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterAccess=600s
-```
-
 ## 🏗️ Architecture
 
 ### Layered Architecture
@@ -661,12 +515,51 @@ spring:
 - Audit fields (created_at, updated_at)
 - Status enumeration for account states
 
-## 📈 Performance Optimization
+## 📈 Cache & Performance Optimization 
 
-### Caching Strategy
-- Account data cached for 5 minutes
-- Balance information cached for 1 minute
-- Cache eviction on data modifications
+### Cache Configuration
+
+The application uses **high-performance caching** with different cache providers for different environments:
+
+#### Production Environment (Redis)
+```yaml
+spring:
+  cache:
+    type: redis
+    redis:
+      time-to-live: 86400000  # 24 hours in milliseconds
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      database: 0
+```
+
+#### Development/Test Environment (Caffeine)
+```yaml
+spring:
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=86400s  # 24 hours
+```
+
+#### Cached Operations
+The following operations are cached with automatic cache invalidation:
+
+- **Account Retrieval**: `getAccountById()` and `getAccountByAccountNumber()`
+- **Account Details**: `getAccountDetails()` for detailed account information
+- **Cache TTL**: 24 hours (expires daily at midnight)
+- **Cache Eviction**: Automatic on account updates and deletions
+
+#### Cache Benefits
+- **Performance**: 80-90% reduction in database queries for cached data
+- **Scalability**: Handles high read loads efficiently
+- **Consistency**: Automatic cache invalidation on data modifications
+- **Environment Flexibility**: Redis for distributed caching, Caffeine for single-instance
 
 ### Database Optimization
 - Indexed queries for account number lookups

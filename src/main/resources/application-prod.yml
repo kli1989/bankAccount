@@ -23,9 +23,17 @@ spring:
       enabled: false
 
   cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterAccess=600s
+    type: redis
+    redis:
+      time-to-live: 86400000  # 1 day in milliseconds
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      database: 0
 
 logging:
   level:
