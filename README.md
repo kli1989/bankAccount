@@ -141,23 +141,6 @@ Content-Type: application/json
 }
 ```
 
-#### Utility Endpoints
-
-**Get Account Balance**
-```http
-GET /api/v1/accounts/balance/{accountNumber}
-```
-
-**Check Account Existence**
-```http
-GET /api/v1/accounts/exists/{accountNumber}
-```
-
-**Get Active Account Count**
-```http
-GET /api/v1/accounts/count/active
-```
-
 ### Response Format
 
 **Success Response**:
@@ -247,6 +230,11 @@ curl -X POST http://localhost:8080/api/v1/accounts/transfer \
     "description": "Test transfer"
   }'
 ```
+### Testing in UI
+Access Swagger UI at: http://localhost:8080/swagger-ui.html
+Access Test UI at: http://localhost:8080/api/v1/index.html
+![img.png](img.png)
+![img_1.png](img_1.png)
 
 ## 🐳 Docker Deployment
 
@@ -298,11 +286,6 @@ curl http://localhost:8080/api/v1/actuator/health
 ### Metrics Endpoint
 ```bash
 curl http://localhost:8080/api/v1/actuator/metrics
-```
-
-### Prometheus Metrics
-```bash
-curl http://localhost:8080/api/v1/actuator/prometheus
 ```
 
 ## 🔒 Security Considerations
@@ -396,11 +379,6 @@ spring:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Troubleshooting
 
 ### Common Issues
 
@@ -423,12 +401,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Ensure Docker daemon is running
 - Check container logs: `docker logs <container-id>`
 - Verify port mappings and environment variables
-
-### Support
-For support and questions:
-- Check the issues section on GitHub
-- Review the API documentation
-- Run health checks to verify system status
 
 ---
 
