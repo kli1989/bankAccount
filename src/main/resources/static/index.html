@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking System - Account Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .section h2 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2::before {
+            content: "📋";
+            margin-right: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .response.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .response.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .response.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .account-info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .account-info h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .account-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Banking System</h1>
+            <p>Account Management Interface</p>
+        </div>
+
+        <div class="content">
+            <!-- Create Account Section -->
+            <div class="section">
+                <h2>Create New Account</h2>
+                <form id="createAccountForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accountNumber">Account Number *</label>
+                            <input type="text" id="accountNumber" name="accountNumber" placeholder="e.g., ACC12345678" pattern="[A-Za-z0-9]{8,20}" minlength="8" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="accountHolderName">Account Holder Name *</label>
+                            <input type="text" id="accountHolderName" name="accountHolderName" placeholder="e.g., John Doe" minlength="2" maxlength="100" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="e.g., john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Phone Number</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="e.g., +1234567890" pattern="\+?[1-9]\d{1,14}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="initialBalance">Initial Balance *</label>
+                            <input type="number" id="initialBalance" name="initialBalance" step="0.01" min="0" value="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Currency *</label>
+                            <select id="currency" name="currency" pattern="[A-Z]{3}" required>
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                                <option value="CAD">CAD - Canadian Dollar</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading" id="createLoading" style="display: none;"></span>
+                        Create Account
+                    </button>
+                </form>
+
+                <div id="createResponse" class="response" style="display: none;"></div>
+            </div>
+
+            <!-- Update Account Section -->
+            <div class="section">
+                <h2>Update Account</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="updateAccountNumber">Account Number to Update *</label>
+                        <input type="text" id="updateAccountNumber" name="updateAccountNumber" placeholder="e.g., ACC12345678" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="loadAccountBtn" class="btn btn-warning">Load Account</button>
+                    </div>
+                </div>
+
+                <form id="updateAccountForm" style="display: none;">
+                    <div class="account-info" id="currentAccountInfo"></div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="updateAccountHolderName">Account Holder Name *</label>
+                            <input type="text" id="updateAccountHolderName" name="updateAccountHolderName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateEmail">Email</label>
+                            <input type="email" id="updateEmail" name="updateEmail">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="updatePhoneNumber">Phone Number</label>
+                        <input type="tel" id="updatePhoneNumber" name="updatePhoneNumber">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <span class="loading" id="updateLoading" style="display: none;"></span>
+                        Update Account
+                    </button>
+                </form>
+
+                <div id="updateResponse" class="response" style="display: none;"></div>
+            </div>
+
+            <!-- Search Accounts Section -->
+            <div class="section">
+                <h2>Search Accounts</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="searchTerm">Search Term</label>
+                        <input type="text" id="searchTerm" name="searchTerm" placeholder="Account holder name or number">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="searchBtn" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+
+                <div id="searchResponse" class="response" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1/accounts';
+
+        // Utility functions
+        function showResponse(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `response ${type}`;
+            element.style.display = 'block';
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideResponse(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        function setLoading(buttonId, loadingId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const loading = document.getElementById(loadingId);
+
+            if (isLoading) {
+                button.disabled = true;
+                loading.style.display = 'inline-block';
+            } else {
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function formatAccountData(account) {
+            return {
+                'Account ID': account.id,
+                'Account Number': account.accountNumber,
+                'Holder Name': account.accountHolderName,
+                'Email': account.email || 'Not provided',
+                'Phone': account.phoneNumber || 'Not provided',
+                'Balance': `${account.balance} ${account.currency}`,
+                'Status': account.status,
+                'Created': new Date(account.createdAt).toLocaleString(),
+                'Updated': new Date(account.updatedAt).toLocaleString()
+            };
+        }
+
+        function displayAccountInfo(account, containerId) {
+            const container = document.getElementById(containerId);
+            const details = formatAccountData(account);
+
+            const html = `
+                <h3>Current Account Information</h3>
+                <div class="account-details">
+                    ${Object.entries(details).map(([key, value]) =>
+                        `<div class="detail-item">
+                            <span class="detail-label">${key}:</span>
+                            <span class="detail-value">${value}</span>
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Create Account Functionality
+        document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+
+            // Client-side validation
+            const validationErrors = validateForm(formData);
+            if (validationErrors.length > 0) {
+                showResponse('createResponse',
+                    `❌ Validation Errors:\n\n${validationErrors.join('\n')}`,
+                    'error');
+                return;
+            }
+
+            const accountData = {
+                accountNumber: formData.get('accountNumber'),
+                accountHolderName: formData.get('accountHolderName'),
+                email: formData.get('email') || null,
+                phoneNumber: formData.get('phoneNumber') || null,
+                initialBalance: parseFloat(formData.get('initialBalance')),
+                currency: formData.get('currency')
+            };
+
+            try {
+                setLoading('createAccountForm', 'createLoading', true);
+                hideResponse('createResponse');
+
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(accountData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResponse('createResponse',
+                        `✅ Account created successfully!\n\n${JSON.stringify(result, null, 2)}`,
+                        'success');
+
+                    // Clear form
+                    e.target.reset();
+                } else {
+                    showResponse('createResponse',
+                        `❌ Failed to create account:\n\n${JSON.stringify(result, null, 2)}`,
+                        'error');
+                }
+            } catch (error) {
+                showResponse('createResponse',
+                    `❌ Error: ${error.message}`,
+                    'error');
+            } finally {
+                setLoading('createAccountForm', 'createLoading', false);
+            }
+        });
+
+        // Load Account for Update
+        document.getElementById('loadAccountBtn').addEventListener('click', async () => {
+            const accountNumber = document.getElementById('updateAccountNumber').value.trim();
+
+            if (!accountNumber) {
+                alert('Please enter an account number');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/number/${accountNumber}`);
+                const account = await response.json();
+
+                if (response.ok) {
+                    displayAccountInfo(account, 'currentAccountInfo');
+
+                    // Populate update form
+                    document.getElementById('updateAccountHolderName').value = account.accountHolderName;
+                    document.getElementById('updateEmail').value = account.email || '';
+                    document.getElementById('updatePhoneNumber').value = account.phoneNumber || '';
+
+                    // Show update form
+                    document.getElementById('updateAccountForm').style.display = 'block';
+                    hideResponse('updateResponse');
+                } else {
+                    showResponse('updateResponse',
+                        `❌ Account not found: ${accountNumber}`,
+                        'error');
+                    document.getElementById('updateAccountForm').style.display = 'none';
+                }
+            } catch (error) {
+                showResponse('updateResponse',
+                    `❌ Error loading account: ${error.message}`,
+                    'error');
+                document.getElementById('updateAccountForm').style.display = 'none';
+            }
+        });
+
+        // Update Account Functionality
+        document.getElementById('updateAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const accountNumber = document.getElementById('updateAccountNumber').value.trim();
+            const formData = new FormData(e.target);
+
+            const updateData = {
+                accountHolderName: formData.get('updateAccountHolderName'),
+                email: formData.get('updateEmail') || null,
+                phoneNumber: formData.get('updatePhoneNumber') || null
+            };
+
+            try {
+                setLoading('updateAccountForm', 'updateLoading', true);
+                hideResponse('updateResponse');
+
+                const response = await fetch(`${API_BASE}/number/${accountNumber}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResponse('updateResponse',
+                        `✅ Account updated successfully!\n\n${JSON.stringify(result, null, 2)}`,
+                        'success');
+
+                    // Refresh account info
+                    displayAccountInfo(result, 'currentAccountInfo');
+                } else {
+                    showResponse('updateResponse',
+                        `❌ Failed to update account:\n\n${JSON.stringify(result, null, 2)}`,
+                        'error');
+                }
+            } catch (error) {
+                showResponse('updateResponse',
+                    `❌ Error: ${error.message}`,
+                    'error');
+            } finally {
+                setLoading('updateAccountForm', 'updateLoading', false);
+            }
+        });
+
+        // Search Accounts Functionality
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+
+            try {
+                let url;
+                if (searchTerm) {
+                    // Search by account holder name
+                    url = `${API_BASE}/search?accountHolderName=${encodeURIComponent(searchTerm)}&size=10`;
+                } else {
+                    // Get all accounts
+                    url = `${API_BASE}?size=10`;
+                }
+
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (result.content && result.content.length > 0) {
+                        const accountsText = result.content.map(account =>
+                            `• ${account.accountNumber} - ${account.accountHolderName} (${account.balance} ${account.currency})`
+                        ).join('\n');
+
+                        showResponse('searchResponse',
+                            `📋 Found ${result.totalElements} account(s):\n\n${accountsText}`,
+                            'success');
+                    } else {
+                        showResponse('searchResponse',
+                            'ℹ️ No accounts found matching the search criteria.',
+                            'info');
+                    }
+                } else {
+                    showResponse('searchResponse',
+                        `❌ Search failed: ${JSON.stringify(result, null, 2)}`,
+                        'error');
+                }
+            } catch (error) {
+                showResponse('searchResponse',
+                    `❌ Error: ${error.message}`,
+                    'error');
+            }
+        });
+
+        // Auto-generate account number suggestion
+        document.getElementById('accountHolderName').addEventListener('input', (e) => {
+            const name = e.target.value.trim();
+            if (name.length > 2) {
+                // Generate account number that meets validation requirements (8-20 chars, alphanumeric)
+                const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+                const suggestion = 'ACC' + name.substring(0, 3).toUpperCase() + randomPart;
+                document.getElementById('accountNumber').placeholder = `Suggested: ${suggestion}`;
+                document.getElementById('accountNumber').value = suggestion;
+            }
+        });
+
+        // Add client-side validation
+        function validateForm(formData) {
+            const errors = [];
+
+            // Account number validation
+            const accountNumber = formData.get('accountNumber');
+            if (!accountNumber || accountNumber.length < 8 || accountNumber.length > 20) {
+                errors.push('Account number must be between 8 and 20 characters');
+            }
+            if (!/^[A-Za-z0-9]+$/.test(accountNumber)) {
+                errors.push('Account number must contain only alphanumeric characters');
+            }
+
+            // Account holder name validation
+            const accountHolderName = formData.get('accountHolderName');
+            if (!accountHolderName || accountHolderName.length < 2 || accountHolderName.length > 100) {
+                errors.push('Account holder name must be between 2 and 100 characters');
+            }
+
+            // Email validation
+            const email = formData.get('email');
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errors.push('Please enter a valid email address');
+            }
+
+            // Phone validation
+            const phoneNumber = formData.get('phoneNumber');
+            if (phoneNumber && !/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
+                errors.push('Please enter a valid phone number');
+            }
+
+            // Initial balance validation
+            const initialBalance = parseFloat(formData.get('initialBalance'));
+            if (isNaN(initialBalance) || initialBalance < 0) {
+                errors.push('Initial balance must be a positive number');
+            }
+
+            // Currency validation
+            const currency = formData.get('currency');
+            if (!currency || !/^[A-Z]{3}$/.test(currency)) {
+                errors.push('Currency must be a 3-letter ISO code');
+            }
+
+            return errors;
+        }
+    </script>
+</body>
+</html>

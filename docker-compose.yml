@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  banking-system:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - banking-network
+
+  # Optional: H2 Database Console (for development/debugging)
+  h2-console:
+    image: oscarfonts/h2
+    ports:
+      - "8181:8082"
+    environment:
+      - H2_OPTIONS=-webAllowOthers -webPort 8082
+    volumes:
+      - h2-data:/opt/h2-data
+    networks:
+      - banking-network
+    profiles:
+      - dev
+
+networks:
+  banking-network:
+    driver: bridge
+
+volumes:
+  h2-data:
