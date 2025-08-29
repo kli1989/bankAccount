@@ -364,3 +364,19 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# Gatling Test Results
+target/gatling/
+gatling.log
+gatling.log.*
+
+# Performance Test Logs
+performance-test-results/
+*.log
+logs/
+
+# Temporary Test Files
+temp/
+tmp/
+*.tmp
+*.temp
