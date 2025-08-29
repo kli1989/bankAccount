@@ -16,12 +16,12 @@ A robust Spring Boot application for managing bank accounts with comprehensive R
   - [🔗 Integration Testing](#-integration-testing)
   - [📊 Test Reporting & Analytics](#-test-reporting--analytics)
   - [🎨 User Interface Testing](#-user-interface-testing)
+- [📈 Cache & Performance Optimization](#-cache--performance-optimization)
 - [🐳 Docker Deployment](#-docker-deployment)
 - [📊 Monitoring & Health Checks](#-monitoring--health-checks)
 - [🔒 Security Considerations](#-security-considerations)
 - [🔧 Configuration](#-configuration)
 - [🏗️ Architecture](#️-architecture)
-- [📈 Cache & Performance Optimization](#-cache--performance-optimization)
 
 - [🔍 Troubleshooting](#-troubleshooting)
 
@@ -406,6 +406,85 @@ http://localhost:8080/api/v1/index.html
 
 **Need help?** Check our [troubleshooting guide](#-debugging--troubleshooting) or open an issue.
 
+## 📈 Cache & Performance Optimization
+
+### Cache Configuration
+
+The application uses **high-performance caching** with different cache providers for different environments:
+
+#### Production Environment (Redis)
+```yaml
+spring:
+  cache:
+    type: redis
+    redis:
+      time-to-live: 86400000  # 24 hours in milliseconds
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      database: 0
+```
+
+#### Development/Test Environment (Caffeine)
+```yaml
+spring:
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=86400s  # 24 hours
+```
+
+#### Cached Operations
+The following operations are cached with automatic cache invalidation:
+
+- **Account Retrieval**: `getAccountById()` and `getAccountByAccountNumber()`
+- **Account Details**: `getAccountDetails()` for detailed account information
+- **Cache TTL**: 24 hours (expires daily at midnight)
+- **Cache Eviction**: Automatic on account updates and deletions
+
+#### Cache Benefits
+- **Performance**: 80-90% reduction in database queries for cached data
+- **Scalability**: Handles high read loads efficiently
+- **Consistency**: Automatic cache invalidation on data modifications
+- **Environment Flexibility**: Redis for distributed caching, Caffeine for single-instance
+
+### Database Optimization
+- Indexed queries for account number lookups
+- Pagination for large result sets
+- Connection pooling with HikariCP
+
+### Concurrent Processing
+- Pessimistic locking for critical operations
+- Thread-safe balance updates
+- Optimized database queries
+
+
+### Common Issues
+
+**Application won't start**:
+- Ensure Java 17 is installed and JAVA_HOME is set
+- Check if port 8080 is available
+- Verify Maven dependencies are downloaded
+
+**Database connection issues**:
+- For H2 console: http://localhost:8080/api/v1/h2-console
+- Check database URL in configuration
+- Ensure database files have proper permissions (production)
+
+**Test failures**:
+- Run `./mvnw clean test` to ensure clean test execution
+- Check test logs for specific error messages
+- Verify test database configuration
+
+**Docker issues**:
+- Ensure Docker daemon is running
+- Check container logs: `docker logs <container-id>`
+- Verify port mappings and environment variables
+
 ## 🐳 Docker Deployment
 
 ### Development with Docker Compose
@@ -514,85 +593,6 @@ curl http://localhost:8080/api/v1/actuator/metrics
 - Unique constraint on account numbers
 - Audit fields (created_at, updated_at)
 - Status enumeration for account states
-
-## 📈 Cache & Performance Optimization 
-
-### Cache Configuration
-
-The application uses **high-performance caching** with different cache providers for different environments:
-
-#### Production Environment (Redis)
-```yaml
-spring:
-  cache:
-    type: redis
-    redis:
-      time-to-live: 86400000  # 24 hours in milliseconds
-
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      timeout: 2000ms
-      database: 0
-```
-
-#### Development/Test Environment (Caffeine)
-```yaml
-spring:
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=86400s  # 24 hours
-```
-
-#### Cached Operations
-The following operations are cached with automatic cache invalidation:
-
-- **Account Retrieval**: `getAccountById()` and `getAccountByAccountNumber()`
-- **Account Details**: `getAccountDetails()` for detailed account information
-- **Cache TTL**: 24 hours (expires daily at midnight)
-- **Cache Eviction**: Automatic on account updates and deletions
-
-#### Cache Benefits
-- **Performance**: 80-90% reduction in database queries for cached data
-- **Scalability**: Handles high read loads efficiently
-- **Consistency**: Automatic cache invalidation on data modifications
-- **Environment Flexibility**: Redis for distributed caching, Caffeine for single-instance
-
-### Database Optimization
-- Indexed queries for account number lookups
-- Pagination for large result sets
-- Connection pooling with HikariCP
-
-### Concurrent Processing
-- Pessimistic locking for critical operations
-- Thread-safe balance updates
-- Optimized database queries
-
-
-### Common Issues
-
-**Application won't start**:
-- Ensure Java 17 is installed and JAVA_HOME is set
-- Check if port 8080 is available
-- Verify Maven dependencies are downloaded
-
-**Database connection issues**:
-- For H2 console: http://localhost:8080/api/v1/h2-console
-- Check database URL in configuration
-- Ensure database files have proper permissions (production)
-
-**Test failures**:
-- Run `./mvnw clean test` to ensure clean test execution
-- Check test logs for specific error messages
-- Verify test database configuration
-
-**Docker issues**:
-- Ensure Docker daemon is running
-- Check container logs: `docker logs <container-id>`
-- Verify port mappings and environment variables
 
 ---
 
